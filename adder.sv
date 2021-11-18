@@ -1,0 +1,15 @@
+module adder_5bit(A, B, out);
+	input [4:0] A, B;
+	output [4:0] out;
+
+	assign out = A + B;
+
+endmodule
+
+module adder_128bit(A, B, out);
+	input [127:0] A, B;
+	output [127:0] out;
+
+	assign out = A + B;
+
+endmodule

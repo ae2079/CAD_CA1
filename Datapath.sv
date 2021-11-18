@@ -1,0 +1,52 @@
+module DataPath(N, S1, S2, Flag_In, weN, wen, wex, wey, pop, top, push, clk, rst, Flag_Out, GT1, end_, out_);
+	input weN, wen, wex, wey, pop, top, push, clk, rst;
+	input [1:0] S1, S2, Flag_In;
+	input [4:0] N;
+	output GT1, end_;
+	output [1:0] Flag_Out;
+	output [127:0] out_;
+	wire sel;
+	wire [4:0] N_out, n_out, shr_out, n_1, n_2, m2_out, m3_out;
+	wire [5:0] shl_out;
+	wire [127:0] x_out, y_out, mult_1, mult_2, adder_out;
+	wire [134:0] In, Out;
+	
+	reg_5bit N_reg(N, weN, clk, rst, N_out),
+		 n_reg(Out[132:128], wen, clk, rst, n_out);
+
+	reg_128bit x_reg(Out[127:0], wex, clk, rst, x_out),
+		   y_reg(Out[127:0], wey, clk, rst, y_out); 
+	
+	shift_left shl(n_out, shl_out);
+
+	shift_right shr(n_out, shr_out);
+
+	GT gt(shl_out, N_out, sel);
+
+	OR_module o(shr_out, GT1);
+	
+	Is_same is(n_out, N_out, end_);
+
+	Stack stack(In, push, pop, top, clk, rst, Out);
+
+	adder_5bit adder1(n_out, 5'b11111, n_1),
+		   adder2(n_1, 5'b11111, n_2);
+
+	MUX3to1_5bit m1(N_out, n_out, n_1, S1, In[132:128]);
+
+	MUX2to1_5bit m2(n_1, n_2, sel, m2_out),
+		     m3(n_2, n_1, sel, m3_out);
+
+	Multiplier mult1(x_out, m3_out, mult_1),
+		   mult2(y_out, m2_out, mult_2);
+
+	adder_128bit adder3(mult_1, mult_2, adder_out);
+
+	MUX4to1_128bit m4(128'd0, 128'd1, adder_out, x_reg, S2, In[127:0]);
+
+	assign In[134:133] = Flag_In;
+
+	assign out_ = x_out;
+	assign Flag_Out = Out[134:133];
+	
+endmodule
